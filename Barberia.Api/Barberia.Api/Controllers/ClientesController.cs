@@ -39,6 +39,11 @@ namespace Barberia.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Cliente>> CreateCliente(Cliente cliente)
         {
+            // ✅ Cambio 4: email único (sin cambiar PK)
+            bool exists = await _context.Clientes.AnyAsync(c => c.Email == cliente.Email);
+            if (exists)
+                return BadRequest("Ese email ya está registrado.");
+
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
@@ -52,6 +57,11 @@ namespace Barberia.Api.Controllers
             if (id != cliente.Id)
                 return BadRequest("El id de la URL no coincide con el id del cuerpo.");
 
+            // ✅ Cambio 4: email único en update (evita duplicar el email de otro cliente)
+            bool exists = await _context.Clientes.AnyAsync(c => c.Email == cliente.Email && c.Id != id);
+            if (exists)
+                return BadRequest("Ese email ya está registrado.");
+
             _context.Entry(cliente).State = EntityState.Modified;
 
             try
@@ -60,8 +70,8 @@ namespace Barberia.Api.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                bool exists = await _context.Clientes.AnyAsync(c => c.Id == id);
-                if (!exists) return NotFound();
+                bool existsId = await _context.Clientes.AnyAsync(c => c.Id == id);
+                if (!existsId) return NotFound();
                 throw;
             }
 
