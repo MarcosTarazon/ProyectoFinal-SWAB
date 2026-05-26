@@ -49,6 +49,10 @@ namespace Barberia.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Cita>> CreateCita(Cita cita)
         {
+            // ✅ Cambio 1: no permitir citas en el pasado
+            if (cita.FechaHora < DateTime.Now)
+                return BadRequest("No se puede agendar una cita en el pasado.");
+
             // Validación mínima para evitar claves foráneas inválidas
             bool clienteOk = await _context.Clientes.AnyAsync(x => x.Id == cita.ClienteId);
             bool barberoOk = await _context.Barberos.AnyAsync(x => x.Id == cita.BarberoId);
@@ -72,6 +76,10 @@ namespace Barberia.Api.Controllers
         {
             if (id != cita.Id)
                 return BadRequest("El id de la URL no coincide con el id del cuerpo.");
+
+            // ✅ Cambio 1: no permitir citas en el pasado
+            if (cita.FechaHora < DateTime.Now)
+                return BadRequest("No se puede agendar una cita en el pasado.");
 
             bool clienteOk = await _context.Clientes.AnyAsync(x => x.Id == cita.ClienteId);
             bool barberoOk = await _context.Barberos.AnyAsync(x => x.Id == cita.BarberoId);
